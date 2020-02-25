@@ -65,7 +65,7 @@ o/ufQJVtMVT8QtPHRh8jrdkPSHCa2XV4cdFyQzR1bldZwgJcJmApzyMZFo6IQ6XU
 rqXRfboQnoZsG4q5WTP468SQvvG5
 -----END CERTIFICATE-----`
 
-// NewThingFromStrings returns a new instance of Thing, given
+// NewThingFromStrings returns a new instance of Thing
 func NewThingFromStrings(cert string, key string, awsEndpoint string, thingName ThingName) (*Thing, error) {
 	tlsCert, err := tls.X509KeyPair([]byte(cert), []byte(key))
 	certs := x509.NewCertPool()
@@ -309,7 +309,6 @@ func (t *Thing) DeleteThingShadow() error {
 }
 
 // PublishToCustomTopic publishes an async message to the custom topic.
-// The specified topic argument will be prepended by a prefix "$aws/things/<thing_name>"
 func (t *Thing) PublishToCustomTopic(payload Payload, topic string) error {
 	token := t.client.Publish(
 		topic,
@@ -322,7 +321,6 @@ func (t *Thing) PublishToCustomTopic(payload Payload, topic string) error {
 }
 
 // SubscribeForCustomTopic subscribes for the custom topic and returns the channel with the topic messages.
-// The specified topic argument will be prepended by a prefix "$aws/things/<thing_name>"
 func (t *Thing) SubscribeForCustomTopic(topic string) (chan Payload, error) {
 	payloadChan := make(chan Payload)
 
