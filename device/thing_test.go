@@ -3,10 +3,12 @@ package device
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var thingName = ""
@@ -43,8 +45,18 @@ type shadowStruct struct {
 	} `json:"state"`
 }
 
-func TestNewThing(t *testing.T) {
-	thing, err := NewThing(keyPair, endpoint, thingName)
+func TestNewThingFromFiles(t *testing.T) {
+	thing, err := NewThingFromFiles(keyPair, endpoint, thingName)
+	assert.NoError(t, err, "thing instance created without error")
+	assert.NotNil(t, thing, "thing instance is not nil")
+
+	defer thing.Disconnect()
+}
+
+func TestNewThingFromStrings(t *testing.T) {
+	cert, err := ioutil.ReadFile(keyPair.CertificatePath)
+	key, err := ioutil.ReadFile(keyPair.PrivateKeyPath)
+	thing, err := NewThingFromStrings(string(cert), string(key), endpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")
 	assert.NotNil(t, thing, "thing instance is not nil")
 
@@ -52,7 +64,7 @@ func TestNewThing(t *testing.T) {
 }
 
 func TestThingShadow(t *testing.T) {
-	thing, err := NewThing(keyPair, endpoint, thingName)
+	thing, err := NewThingFromFiles(keyPair, endpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")
 	assert.NotNil(t, thing, "thing instance is not nil")
 	defer thing.Disconnect()
@@ -89,7 +101,7 @@ func TestThingShadow(t *testing.T) {
 }
 
 func TestThing_UpdateThingShadowShouldFail(t *testing.T) {
-	thing, err := NewThing(keyPair, endpoint, thingName)
+	thing, err := NewThingFromFiles(keyPair, endpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")
 	assert.NotNil(t, thing, "thing instance is not nil")
 	defer thing.Disconnect()
@@ -105,12 +117,12 @@ func TestThing_UpdateThingShadowShouldFail(t *testing.T) {
 }
 
 func TestThing_UpdateThingShadowDocument(t *testing.T) {
-	thing, err := NewThing(keyPair, endpoint, thingName)
+	thing, err := NewThingFromFiles(keyPair, endpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")
 	assert.NotNil(t, thing, "thing instance is not nil")
 	defer thing.Disconnect()
 
-	shadowChan, err := thing.SubscribeForCustomTopic("shadow/update/documents")
+	shadowChan, err := thing.SubscribeForCustomTopic(fmt.Sprintf("$aws/things/%s/shadow/update/documents", thingName))
 	assert.NoError(t, err, "received thing shadow subscription channel without error")
 
 	shadowDocument := fmt.Sprintf(`{"state": {"reported": {"value": %d}}}`, time.Now().UTC().Unix())
@@ -121,11 +133,11 @@ func TestThing_UpdateThingShadowDocument(t *testing.T) {
 	remoteShadow, ok := <- shadowChan
 	assert.True(t, ok, "the update shadow document has been handled successfully")
 
-	assert.Equal(t, Shadow(shadowDocument), remoteShadow)
+	assert.Equal(t, Payload(shadowDocument), remoteShadow)
 }
 
 func TestThing_DeleteThingShadow(t *testing.T) {
-	thing, err := NewThing(keyPair, endpoint, thingName)
+	thing, err := NewThingFromFiles(keyPair, endpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")
 	assert.NotNil(t, thing, "thing instance is not nil")
 	defer thing.Disconnect()
@@ -134,25 +146,35 @@ func TestThing_DeleteThingShadow(t *testing.T) {
 	assert.NoError(t, err, "thing shadow deleted without error")
 }
 
-func TestThing_CustomTopic(t *testing.T) {
-	thing, err := NewThing(keyPair, endpoint, thingName)
+func TestThing_ListenForJobs(t *testing.T) {
+	thing, err := NewThingFromFiles(keyPair, endpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")
 	assert.NotNil(t, thing, "thing instance is not nil")
 	defer thing.Disconnect()
 
-	customTopic := "fancy"
+	_, err = thing.ListenForJobs()
+	assert.NoError(t, err, "subscribed to iot core jobs with no errors")
+}
 
-	shadowChan, err := thing.SubscribeForCustomTopic(customTopic)
+func TestThing_CustomTopic(t *testing.T) {
+	thing, err := NewThingFromFiles(keyPair, endpoint, thingName)
+	assert.NoError(t, err, "thing instance created without error")
+	assert.NotNil(t, thing, "thing instance is not nil")
+	defer thing.Disconnect()
+
+	customTopic := fmt.Sprintf("$aws/things/%s/fancy", thingName)
+
+	customChan, err := thing.SubscribeForCustomTopic(customTopic)
 	assert.NoError(t, err, "received thing shadow custom topic subscription channel without error")
 
-	shadowPayload := Shadow(`{"state":{"reported":{"yo":true}}}`)
+	customPayload := Payload(`{"state":{"reported":{"yo":true}}}`)
 
 
-	err = thing.PublishToCustomTopic(shadowPayload, customTopic)
+	err = thing.PublishToCustomTopic(customPayload, customTopic)
 	assert.NoError(t, err, "thing shadow published to custom topic updated without error")
 
-	remoteShadow, ok := <- shadowChan
+	remotePayload, ok := <- customChan
 	assert.True(t, ok, "the shadow in custom topic has been handled successfully")
 
-	assert.Equal(t, shadowPayload, remoteShadow)
+	assert.Equal(t, customPayload, remotePayload)
 }
