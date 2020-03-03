@@ -6,7 +6,7 @@ The aws-iot-device-sdk-go package allows developers to write Go lang application
 ```
 package main
 import (
-    "github.com/kuzemkon/aws-iot-device-sdk-go/device"
+    "github.com/joshuarose/aws-iot-device-sdk-go/device"
     "fmt"
 )
 
