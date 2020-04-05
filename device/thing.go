@@ -212,11 +212,53 @@ func (t *Thing) UpdateThingShadow(payload Shadow) error {
 
 // ListenForJobs is a helper function that subscribes to the topic responsible for notifying on IoT Core Jobs
 func (t *Thing) ListenForJobs() (chan Payload, error) {
-	return t.SubscribeForCustomTopic(fmt.Sprintf("$aws/things/%s/jobs/notify", t.thingName))
+	// return t.SubscribeForCustomTopic(fmt.Sprintf("$aws/things/%s/jobs/notify", t.thingName))
+	jobsChan := make(chan Payload)
+	if token := t.client.Subscribe(
+		fmt.Sprintf("$aws/things/%s/jobs/notify", t.thingName),
+		1,
+		func(client mqtt.Client, msg mqtt.Message) {
+			jobsChan <- msg.Payload()
+		},
+	); token.Wait() && token.Error() != nil {
+		return nil, token.Error()
+	}
+	if token := t.client.Subscribe(
+		fmt.Sprintf("$aws/things/%s/jobs/notify-next", t.thingName),
+		1,
+		func(client mqtt.Client, msg mqtt.Message) {
+			jobsChan <- msg.Payload()
+		},
+	); token.Wait() && token.Error() != nil {
+		return nil, token.Error()
+	}
+	if token := t.client.Subscribe(
+		fmt.Sprintf("$aws/things/%s/jobs/get/accepted", t.thingName),
+		1,
+		func(client mqtt.Client, msg mqtt.Message) {
+			jobsChan <- msg.Payload()
+		},
+	); token.Wait() && token.Error() != nil {
+		return nil, token.Error()
+	}
+	if token := t.client.Subscribe(
+		fmt.Sprintf("$aws/things/%s/jobs/get/rejected", t.thingName),
+		1,
+		func(client mqtt.Client, msg mqtt.Message) {
+			jobsChan <- msg.Payload()
+		},
+	); token.Wait() && token.Error() != nil {
+		return nil, token.Error()
+	}
+	return jobsChan, nil
 }
 //
 func (t *Thing) UnsubscribeFromJobs() error {
-	return t.UnsubscribeFromCustomTopic(fmt.Sprintf("$aws/things/%s/jobs/notify", t.thingName))
+	err := t.unsubscribe(fmt.Sprintf("$aws/things/%s/jobs/notify", t.thingName))
+	err = t.unsubscribe(fmt.Sprintf("$aws/things/%s/jobs/notify-next", t.thingName))
+	err = t.unsubscribe(fmt.Sprintf("$aws/things/%s/jobs/get/accepted", t.thingName))
+	err = t.unsubscribe(fmt.Sprintf("$aws/things/%s/jobs/get/rejected", t.thingName))
+	return err
 }
 
 // SubscribeForThingShadowChanges subscribes for the device shadow update topic and returns two channels: shadow and shadow error.
