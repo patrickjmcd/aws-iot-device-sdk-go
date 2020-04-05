@@ -160,7 +160,7 @@ func (t *Thing) GetThingShadow() (Shadow, error) {
 
 	if token := t.client.Subscribe(
 		fmt.Sprintf("$aws/things/%s/shadow/get/accepted", t.thingName),
-		0,
+		1,
 		func(client mqtt.Client, msg mqtt.Message) {
 			shadowChan <- msg.Payload()
 		},
@@ -170,7 +170,7 @@ func (t *Thing) GetThingShadow() (Shadow, error) {
 
 	if token := t.client.Subscribe(
 		fmt.Sprintf("$aws/things/%s/shadow/get/rejected", t.thingName),
-		0,
+		1,
 		func(client mqtt.Client, msg mqtt.Message) {
 			errChan <- errors.New(string(msg.Payload()))
 		},
@@ -180,7 +180,7 @@ func (t *Thing) GetThingShadow() (Shadow, error) {
 
 	if token := t.client.Publish(
 		fmt.Sprintf("$aws/things/%s/shadow/get", t.thingName),
-		0,
+		1,
 		false,
 		[]byte("{}"),
 	); token.Wait() && token.Error() != nil {
@@ -205,7 +205,7 @@ func (t *Thing) GetThingShadow() (Shadow, error) {
 
 // UpdateThingShadow publishes an async message with new thing shadow
 func (t *Thing) UpdateThingShadow(payload Shadow) error {
-	token := t.client.Publish(fmt.Sprintf("$aws/things/%s/shadow/update", t.thingName), 0, false, []byte(payload))
+	token := t.client.Publish(fmt.Sprintf("$aws/things/%s/shadow/update", t.thingName), 1, false, []byte(payload))
 	token.Wait()
 	return token.Error()
 }
@@ -228,7 +228,7 @@ func (t *Thing) SubscribeForThingShadowChanges() (chan Shadow, chan ShadowError,
 
 	if token := t.client.Subscribe(
 		fmt.Sprintf("$aws/things/%s/shadow/update/accepted", t.thingName),
-		0,
+		1,
 		func(client mqtt.Client, msg mqtt.Message) {
 			shadowChan <- msg.Payload()
 		},
@@ -238,7 +238,7 @@ func (t *Thing) SubscribeForThingShadowChanges() (chan Shadow, chan ShadowError,
 
 	if token := t.client.Subscribe(
 		fmt.Sprintf("$aws/things/%s/shadow/update/rejected", t.thingName),
-		0,
+		1,
 		func(client mqtt.Client, msg mqtt.Message) {
 			shadowErrChan <- msg.Payload()
 		},
@@ -269,7 +269,7 @@ func (t *Thing) DeleteThingShadow() error {
 
 	if token := t.client.Subscribe(
 		fmt.Sprintf("$aws/things/%s/shadow/delete/accepted", t.thingName),
-		0,
+		1,
 		func(client mqtt.Client, msg mqtt.Message) {
 			shadowChan <- msg.Payload()
 		},
@@ -279,7 +279,7 @@ func (t *Thing) DeleteThingShadow() error {
 
 	if token := t.client.Subscribe(
 		fmt.Sprintf("$aws/things/%s/shadow/delete/rejected", t.thingName),
-		0,
+		1,
 		func(client mqtt.Client, msg mqtt.Message) {
 			errChan <- errors.New(string(msg.Payload()))
 		},
@@ -289,7 +289,7 @@ func (t *Thing) DeleteThingShadow() error {
 
 	if token := t.client.Publish(
 		fmt.Sprintf("$aws/things/%s/shadow/delete", t.thingName),
-		0,
+		1,
 		false,
 		[]byte("{}"),
 	); token.Wait() && token.Error() != nil {
@@ -316,7 +316,7 @@ func (t *Thing) DeleteThingShadow() error {
 func (t *Thing) PublishToCustomTopic(payload Payload, topic string) error {
 	token := t.client.Publish(
 		topic,
-		0,
+		1,
 		false,
 		[]byte(payload),
 	)
@@ -330,7 +330,7 @@ func (t *Thing) SubscribeForCustomTopic(topic string) (chan Payload, error) {
 
 	if token := t.client.Subscribe(
 		topic,
-		0,
+		1,
 		func(client mqtt.Client, msg mqtt.Message) {
 			payloadChan <- msg.Payload()
 		},
