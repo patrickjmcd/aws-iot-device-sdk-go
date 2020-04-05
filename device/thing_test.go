@@ -156,6 +156,16 @@ func TestThing_ListenForJobs(t *testing.T) {
 	assert.NoError(t, err, "subscribed to iot core jobs with no errors")
 }
 
+func TestThing_UnsubscribeFromJobs(t *testing.T) {
+	thing, err := NewThingFromFiles(keyPair, endpoint, thingName)
+	assert.NoError(t, err, "thing instance created without error")
+	assert.NotNil(t, thing, "thing instance is not nil")
+	defer thing.Disconnect()
+
+	err = thing.UnsubscribeFromJobs()
+	assert.NoError(t, err, "Unsubscribed to iot core jobs with no errors")
+}
+
 func TestThing_CustomTopic(t *testing.T) {
 	thing, err := NewThingFromFiles(keyPair, endpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")

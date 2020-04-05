@@ -214,6 +214,10 @@ func (t *Thing) UpdateThingShadow(payload Shadow) error {
 func (t *Thing) ListenForJobs() (chan Payload, error) {
 	return t.SubscribeForCustomTopic(fmt.Sprintf("$aws/things/%s/jobs/notify", t.thingName))
 }
+//
+func (t *Thing) UnsubscribeFromJobs() error {
+	return t.UnsubscribeFromCustomTopic(fmt.Sprintf("$aws/things/%s/jobs/notify", t.thingName))
+}
 
 // SubscribeForThingShadowChanges subscribes for the device shadow update topic and returns two channels: shadow and shadow error.
 // The shadow channel will handle all accepted device shadow updates. The shadow error channel will handle all rejected device
