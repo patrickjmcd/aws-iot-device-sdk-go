@@ -252,6 +252,62 @@ func (t *Thing) ListenForJobs() (chan Payload, error) {
 	}
 	return jobsChan, nil
 }
+
+func (t *Thing) GetNextJob() (Payload, error) {
+	jobsChan := make(chan Payload)
+	errChan := make(chan error)
+
+	defer t.unsubscribe(
+		fmt.Sprintf("$aws/things/%s/jobs/get/#", t.thingName),
+		fmt.Sprintf("$aws/things/%s/jobs/next", t.thingName),
+		fmt.Sprintf("$aws/things/%s/jobs/next-notify", t.thingName),
+	)
+
+	if token := t.client.Subscribe(
+		fmt.Sprintf("$aws/things/%s/jobs/next", t.thingName),
+		1,
+		func(client mqtt.Client, msg mqtt.Message) {
+			jobsChan <- msg.Payload()
+		},
+	); token.Wait() && token.Error() != nil {
+		return nil, token.Error()
+	}
+
+	if token := t.client.Subscribe(
+		fmt.Sprintf("$aws/things/%s/jobs/next-notify", t.thingName),
+		1,
+		func(client mqtt.Client, msg mqtt.Message) {
+			jobsChan <- msg.Payload()
+		},
+	); token.Wait() && token.Error() != nil {
+		return nil, token.Error()
+	}
+
+	if token := t.client.Publish(
+		fmt.Sprintf("$aws/things/%s/jobs/get", t.thingName),
+		1,
+		false,
+		[]byte(fmt.Sprintf("{%s: %s, %s: %s}", "clientToken", t.thingName, "jobId", "$next")),
+	); token.Wait() && token.Error() != nil {
+		return nil, token.Error()
+	}
+
+	for {
+		select {
+		case s, ok := <-jobsChan:
+			if !ok {
+				return nil, errors.New("failed to read from jobs channel")
+			}
+			return s, nil
+		case err, ok := <-errChan:
+			if !ok {
+				return nil, errors.New("failed to read from error channel")
+			}
+			return nil, err
+		}
+	}
+}
+
 //
 func (t *Thing) UnsubscribeFromJobs() error {
 	err := t.unsubscribe(fmt.Sprintf("$aws/things/%s/jobs/notify", t.thingName))
