@@ -104,6 +104,9 @@ func NewThingFromStrings(cert string, key string, awsEndpoint string, thingName 
 // NewThingFromFiles returns a new instance of Thing
 func NewThingFromFiles(keyPair KeyPair, awsEndpoint string, thingName ThingName) (*Thing, error) {
 	tlsCert, err := tls.LoadX509KeyPair(keyPair.CertificatePath, keyPair.PrivateKeyPath)
+	if err != nil {
+		return nil ,fmt.Errorf("failed to load the certificates: %v", err)
+	}
 
 	certs := x509.NewCertPool()
 
