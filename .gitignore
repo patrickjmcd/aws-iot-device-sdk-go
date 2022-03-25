@@ -1,2 +1,6 @@
 .idea
 certificates
+_output
+_provision
+.vscode
+provision-arm7

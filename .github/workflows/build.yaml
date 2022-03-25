@@ -1,0 +1,58 @@
+name: build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  releases-matrix:
+    name: Release Go Binary
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+        - os: ubuntu-latest
+          go-version: 1.17.x
+          go-options: "GOOS=linux GOARCH=amd64 " # needs to end with a space
+          artifact_name: aws-provision
+          asset_name: aws-provision-linux-amd64
+        - os: macos-latest
+          go-version: 1.17.x
+          go-options: "GOOS=darwin GOARCH=amd64 " # needs to end with a space
+          artifact_name: aws-provision
+          asset_name: aws-provision-macos-amd64
+        - os: windows-latest
+          go-version: 1.17.x
+          go-options: "GOOS=windows GOARCH=i686 " # needs to end with a space
+          artifact_name: aws-provision.exe
+          asset_name: aws-provision-windows-i686
+        - os: ubuntu-latest
+          go-version: 1.17.x
+          go-options: "GOOS=linux GOARCH=arm GOARM=7 " # needs to end with a space
+          artifact_name: aws-provision
+          asset_name: aws-provision-arm7
+    steps:
+    - uses: actions/checkout@v2
+    - name: Prepare
+      id: prepare
+      run: |
+        echo ::set-output name=version::${GITHUB_REF#refs/tags/}
+        echo ::set-output name=build_date::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+        echo ::set-output name=sha_short::$(git rev-parse --short HEAD)
+        echo ::set-output name=project::github.com/patrickjmcd/aws-iot-device-sdk-go
+      shell: bash
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+    - name: Build the executables
+      run: |
+        ${{matrix.go-options}}go build -o ${{ matrix.artifact_name }} -ldflags "-s -w -X ${{ steps.prepare.outputs.project }}/version.Release=${{ steps.prepare.outputs.version }} -X ${{ steps.prepare.outputs.project }}/version.Commit=${{ steps.prepare.outputs.sha_short }} -X ${{ steps.prepare.outputs.project }}/version.BuildTime=${{ steps.prepare.outputs.build_date }}"
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{ matrix.artifact_name }}
+        asset_name: ${{ matrix.asset_name }}
+        tag: ${{ github.ref }}
