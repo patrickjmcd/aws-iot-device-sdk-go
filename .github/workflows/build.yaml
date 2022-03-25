@@ -24,7 +24,7 @@ jobs:
           asset_name: aws-provision-macos-amd64
         - os: windows-latest
           go-version: 1.17.x
-          go-options: "GOOS=windows GOARCH=i686 " # needs to end with a space
+          go-options: "GOARCH=i686 " # needs to end with a space
           artifact_name: aws-provision.exe
           asset_name: aws-provision-windows-i686
         - os: ubuntu-latest
