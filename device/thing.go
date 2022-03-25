@@ -128,12 +128,12 @@ func registerThing(c mqtt.Client, templateName string, certificateOwnershipToken
 
 func writeCertificateFiles(certs CreateKeysAndCertificateAccepted, outputFilePath string) error {
 
-	if err := ioutil.WriteFile(outputFilePath+"/cert.pem", []byte(certs.CertificatePem), 0644); err != nil {
-		return fmt.Errorf("failed to write cert.pem: %v", err)
+	if err := ioutil.WriteFile(outputFilePath+"/device.certificate.pem", []byte(certs.CertificatePem), 0644); err != nil {
+		return fmt.Errorf("failed to write device.cert.pem: %v", err)
 	}
 
-	if err := ioutil.WriteFile(outputFilePath+"/key.pem", []byte(certs.PrivateKey), 0644); err != nil {
-		return fmt.Errorf("failed to write key.pem: %v", err)
+	if err := ioutil.WriteFile(outputFilePath+"/device.private.key", []byte(certs.PrivateKey), 0644); err != nil {
+		return fmt.Errorf("failed to write device.private.key: %v", err)
 	}
 
 	certJSON, err := json.MarshalIndent(certs, "", "  ")
