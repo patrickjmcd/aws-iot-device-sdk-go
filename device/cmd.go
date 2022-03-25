@@ -1,4 +1,4 @@
-package cmd
+package device
 
 import (
 	"encoding/json"
@@ -7,7 +7,6 @@ import (
 	"log"
 
 	"github.com/google/uuid"
-	"github.com/patrickjmcd/aws-iot-device-sdk-go/device"
 	"github.com/patrickjmcd/aws-iot-device-sdk-go/networking"
 	"github.com/spf13/cobra"
 )
@@ -89,40 +88,20 @@ var RegisterCmd = &cobra.Command{
 		uniqueID := macAddress[:6] + "fffe" + macAddress[6:]
 		parameters["UniqueId"] = string(uniqueID)
 
-		keypair := device.KeyPair{
+		keypair := KeyPair{
 			PrivateKeyPath:    privateKeyPath,
 			CertificatePath:   certificatePath,
 			CACertificatePath: rootCAPath,
 		}
 
-		client, err := device.MakeMQTTClient(keypair, endpoint, clientID)
+		client, err := MakeMQTTClient(keypair, endpoint, clientID)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		err = device.ProvisionThing(*client, keypair, endpoint, templateName, parameters, outputFilePath)
+		err = ProvisionThing(*client, keypair, endpoint, templateName, parameters, outputFilePath)
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		// Run()
-	},
-}
-
-// GetMACAddressCmd gets the MAC address of the device
-var GetMACAddressCmd = &cobra.Command{
-	Use:   "get-mac-address",
-	Short: "Gets the MAC address of the device",
-	Long:  `Gets the MAC address of the device`,
-	Args:  cobra.NoArgs,
-	Run: func(cmd *cobra.Command, args []string) {
-		macAddress, interfaceName, err := networking.GetMACAddress()
-		if err != nil {
-			log.Fatal(err)
-		}
-		uniqueID := macAddress[:6] + "fffe" + macAddress[6:]
-		log.Printf("MAC Address: %s\n", macAddress)
-		log.Printf("Unique ID: %s\n", uniqueID)
-		log.Printf("Interface Name: %s\n", interfaceName)
 	},
 }

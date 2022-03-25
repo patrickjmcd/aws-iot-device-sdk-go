@@ -5,14 +5,17 @@ import (
 	"log"
 	"os"
 
-	"github.com/patrickjmcd/aws-iot-device-sdk-go/cmd"
+	"github.com/patrickjmcd/aws-iot-device-sdk-go/device"
+	"github.com/patrickjmcd/aws-iot-device-sdk-go/networking"
+	"github.com/patrickjmcd/aws-iot-device-sdk-go/provisioning.go"
 	"github.com/patrickjmcd/go-version"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	rootCmd.AddCommand(cmd.RegisterCmd)
-	rootCmd.AddCommand(cmd.GetMACAddressCmd)
+	rootCmd.AddCommand(device.RegisterCmd)
+	rootCmd.AddCommand(networking.GetMACAddressCmd)
+	rootCmd.AddCommand(provisioning.CreateCertsAndKeysCmd)
 }
 
 var rootCmd = &cobra.Command{

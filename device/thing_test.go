@@ -12,7 +12,7 @@ import (
 )
 
 var thingName = ""
-var endpoint = ""
+var testEndpoint = ""
 
 func TestMain(m *testing.M) {
 	var ok bool
@@ -22,7 +22,7 @@ func TestMain(m *testing.M) {
 		panic("AWS_IOT_THING_NAME environment variable must be defined")
 	}
 
-	endpoint, ok = os.LookupEnv("AWS_MQTT_ENDPOINT")
+	testEndpoint, ok = os.LookupEnv("AWS_MQTT_ENDPOINT")
 	if !ok {
 		panic("AWS_MQTT_ENDPOINT environment variable must be defined")
 	}
@@ -46,7 +46,7 @@ type shadowStruct struct {
 }
 
 func TestNewThingFromFiles(t *testing.T) {
-	thing, err := NewThingFromFiles(keyPair, endpoint, thingName)
+	thing, err := NewThingFromFiles(keyPair, testEndpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")
 	assert.NotNil(t, thing, "thing instance is not nil")
 
@@ -56,7 +56,7 @@ func TestNewThingFromFiles(t *testing.T) {
 func TestNewThingFromStrings(t *testing.T) {
 	cert, err := ioutil.ReadFile(keyPair.CertificatePath)
 	key, err := ioutil.ReadFile(keyPair.PrivateKeyPath)
-	thing, err := NewThingFromStrings(string(cert), string(key), endpoint, thingName)
+	thing, err := NewThingFromStrings(string(cert), string(key), testEndpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")
 	assert.NotNil(t, thing, "thing instance is not nil")
 
@@ -64,7 +64,7 @@ func TestNewThingFromStrings(t *testing.T) {
 }
 
 func TestThingShadow(t *testing.T) {
-	thing, err := NewThingFromFiles(keyPair, endpoint, thingName)
+	thing, err := NewThingFromFiles(keyPair, testEndpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")
 	assert.NotNil(t, thing, "thing instance is not nil")
 	defer thing.Disconnect()
@@ -101,7 +101,7 @@ func TestThingShadow(t *testing.T) {
 }
 
 func TestThing_UpdateThingShadowShouldFail(t *testing.T) {
-	thing, err := NewThingFromFiles(keyPair, endpoint, thingName)
+	thing, err := NewThingFromFiles(keyPair, testEndpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")
 	assert.NotNil(t, thing, "thing instance is not nil")
 	defer thing.Disconnect()
@@ -117,7 +117,7 @@ func TestThing_UpdateThingShadowShouldFail(t *testing.T) {
 }
 
 func TestThing_UpdateThingShadowDocument(t *testing.T) {
-	thing, err := NewThingFromFiles(keyPair, endpoint, thingName)
+	thing, err := NewThingFromFiles(keyPair, testEndpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")
 	assert.NotNil(t, thing, "thing instance is not nil")
 	defer thing.Disconnect()
@@ -130,14 +130,14 @@ func TestThing_UpdateThingShadowDocument(t *testing.T) {
 	err = thing.UpdateThingShadowDocument(Shadow(shadowDocument))
 	assert.NoError(t, err, "thing shadow document updated without error")
 
-	remoteShadow, ok := <- shadowChan
+	remoteShadow, ok := <-shadowChan
 	assert.True(t, ok, "the update shadow document has been handled successfully")
 
 	assert.Equal(t, Payload(shadowDocument), remoteShadow)
 }
 
 func TestThing_DeleteThingShadow(t *testing.T) {
-	thing, err := NewThingFromFiles(keyPair, endpoint, thingName)
+	thing, err := NewThingFromFiles(keyPair, testEndpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")
 	assert.NotNil(t, thing, "thing instance is not nil")
 	defer thing.Disconnect()
@@ -147,7 +147,7 @@ func TestThing_DeleteThingShadow(t *testing.T) {
 }
 
 func TestThing_ListenForJobs(t *testing.T) {
-	thing, err := NewThingFromFiles(keyPair, endpoint, thingName)
+	thing, err := NewThingFromFiles(keyPair, testEndpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")
 	assert.NotNil(t, thing, "thing instance is not nil")
 	defer thing.Disconnect()
@@ -157,7 +157,7 @@ func TestThing_ListenForJobs(t *testing.T) {
 }
 
 func TestThing_UnsubscribeFromJobs(t *testing.T) {
-	thing, err := NewThingFromFiles(keyPair, endpoint, thingName)
+	thing, err := NewThingFromFiles(keyPair, testEndpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")
 	assert.NotNil(t, thing, "thing instance is not nil")
 	defer thing.Disconnect()
@@ -167,7 +167,7 @@ func TestThing_UnsubscribeFromJobs(t *testing.T) {
 }
 
 func TestThing_CustomTopic(t *testing.T) {
-	thing, err := NewThingFromFiles(keyPair, endpoint, thingName)
+	thing, err := NewThingFromFiles(keyPair, testEndpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")
 	assert.NotNil(t, thing, "thing instance is not nil")
 	defer thing.Disconnect()
@@ -179,11 +179,10 @@ func TestThing_CustomTopic(t *testing.T) {
 
 	customPayload := Payload(`{"state":{"reported":{"yo":true}}}`)
 
-
 	err = thing.PublishToCustomTopic(customPayload, customTopic)
 	assert.NoError(t, err, "thing shadow published to custom topic updated without error")
 
-	remotePayload, ok := <- customChan
+	remotePayload, ok := <-customChan
 	assert.True(t, ok, "the shadow in custom topic has been handled successfully")
 
 	assert.Equal(t, customPayload, remotePayload)
