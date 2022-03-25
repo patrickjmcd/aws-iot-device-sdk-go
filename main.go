@@ -7,7 +7,7 @@ import (
 
 	"github.com/patrickjmcd/aws-iot-device-sdk-go/device"
 	"github.com/patrickjmcd/aws-iot-device-sdk-go/networking"
-	"github.com/patrickjmcd/aws-iot-device-sdk-go/provisioning.go"
+	"github.com/patrickjmcd/aws-iot-device-sdk-go/provisioning"
 	"github.com/patrickjmcd/go-version"
 	"github.com/spf13/cobra"
 )
