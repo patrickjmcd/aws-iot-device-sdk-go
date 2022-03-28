@@ -21,7 +21,7 @@ type Service struct {
 
 // Output the AWS credentials output data structure
 type Output struct {
-	AccessKeyId     string `json:"accessKeyId"`
+	AccessKeyID     string `json:"accessKeyId"`
 	SecretAccessKey string `json:"secretAccessKey"`
 	SessionToken    string `json:"sessionToken"`
 	Expiration      string `json:"expiration"`

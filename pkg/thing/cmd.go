@@ -1,4 +1,4 @@
-package device
+package thing
 
 import (
 	"encoding/json"
@@ -7,13 +7,16 @@ import (
 	"log"
 
 	"github.com/google/uuid"
-	"github.com/patrickjmcd/aws-iot-device-sdk-go/networking"
+	"github.com/patrickjmcd/aws-iot-device-sdk-go/pkg/models"
+	"github.com/patrickjmcd/aws-iot-device-sdk-go/pkg/mqtt"
+	"github.com/patrickjmcd/aws-iot-device-sdk-go/pkg/networking"
 	"github.com/spf13/cobra"
 )
 
 var (
 	endpoint              string
 	templateName          string
+	thingName             string
 	privateKeyPath        string
 	certificatePath       string
 	rootCAPath            string
@@ -32,10 +35,9 @@ func init() {
 	RegisterCmd.PersistentFlags().StringVarP(&outputFilePath, "output", "o", ".", "The output file path")
 	RegisterCmd.PersistentFlags().StringVarP(&parameterJSONFilePath, "parameters", "p", "", "The parameters file path")
 	RegisterCmd.PersistentFlags().StringVarP(&clientID, "client-id", "i", "", "The client ID")
-
 }
 
-func checkParameters() error {
+func checkRegisterParameters() error {
 	if endpoint == "" {
 		return fmt.Errorf("endpoint is required")
 	}
@@ -77,7 +79,7 @@ var RegisterCmd = &cobra.Command{
 	Long:  `Registers a new thing and creates/stores all the keys and certs needed to communicate with AWS IoT Core`,
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := checkParameters(); err != nil {
+		if err := checkRegisterParameters(); err != nil {
 			log.Fatal(err)
 		}
 
@@ -88,18 +90,18 @@ var RegisterCmd = &cobra.Command{
 		uniqueID := macAddress[:6] + "fffe" + macAddress[6:]
 		parameters["UniqueId"] = string(uniqueID)
 
-		keypair := KeyPair{
+		keypair := models.KeyPair{
 			PrivateKeyPath:    privateKeyPath,
 			CertificatePath:   certificatePath,
 			CACertificatePath: rootCAPath,
 		}
 
-		client, err := MakeMQTTClient(keypair, endpoint, clientID)
+		client, err := mqtt.MakeMQTTClient(keypair, endpoint, clientID)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		err = ProvisionThing(*client, keypair, endpoint, templateName, parameters, outputFilePath)
+		err = ProvisionThing(client, keypair, endpoint, templateName, parameters, outputFilePath)
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -4,7 +4,9 @@ import (
 	"log"
 
 	"github.com/google/uuid"
-	"github.com/patrickjmcd/aws-iot-device-sdk-go/device"
+	"github.com/patrickjmcd/aws-iot-device-sdk-go/pkg/models"
+	"github.com/patrickjmcd/aws-iot-device-sdk-go/pkg/mqtt"
+	"github.com/patrickjmcd/aws-iot-device-sdk-go/pkg/thing"
 )
 
 func example() {
@@ -18,19 +20,19 @@ func example() {
 		"UniqueID": "12345",
 	}
 
-	keypair := device.KeyPair{
+	keypair := models.KeyPair{
 		PrivateKeyPath:    privateKeyPath,
 		CertificatePath:   certificatePath,
 		CACertificatePath: rootCAPath,
 	}
 
 	clientID := uuid.New().String()
-	client, err := device.MakeMQTTClient(keypair, endpoint, clientID)
+	client, err := mqtt.MakeMQTTClient(keypair, endpoint, clientID)
 	if err != nil {
 		log.Fatalf("error creating client: %v", err)
 	}
 
-	err = device.ProvisionThing(*client, keypair, endpoint, templateName, parameters, outputFilePath)
+	err = thing.ProvisionThing(client, keypair, endpoint, templateName, parameters, outputFilePath)
 	if err != nil {
 		log.Fatal(err)
 	}

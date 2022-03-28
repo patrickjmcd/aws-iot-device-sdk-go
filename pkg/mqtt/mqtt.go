@@ -1,4 +1,4 @@
-package device
+package mqtt
 
 import (
 	"crypto/tls"
@@ -8,10 +8,11 @@ import (
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/patrickjmcd/aws-iot-device-sdk-go/pkg/models"
 )
 
 // MakeMQTTClient creates a new AWS IoT MQTT client.
-func MakeMQTTClient(keyPair KeyPair, awsEndpoint, clientID string) (*mqtt.Client, error) {
+func MakeMQTTClient(keyPair models.KeyPair, awsEndpoint, clientID string) (mqtt.Client, error) {
 	tlsCert, err := tls.LoadX509KeyPair(keyPair.CertificatePath, keyPair.PrivateKeyPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load the certificates: %v", err)
@@ -47,5 +48,5 @@ func MakeMQTTClient(keyPair KeyPair, awsEndpoint, clientID string) (*mqtt.Client
 	if token := c.Connect(); token.Wait() && token.Error() != nil {
 		return nil, token.Error()
 	}
-	return &c, nil
+	return c, nil
 }

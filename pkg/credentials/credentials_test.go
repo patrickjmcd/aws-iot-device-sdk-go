@@ -2,9 +2,10 @@ package credentials
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var thingName = ""
@@ -36,7 +37,7 @@ func TestService_GetCredentials(t *testing.T) {
 	out, err := s.GetCredentials()
 	assert.NoError(t, err, "credentials retrieved without error")
 
-	assert.NotEmpty(t, out.AccessKeyId, "the retrieved accessKeyId is not empty")
+	assert.NotEmpty(t, out.AccessKeyID, "the retrieved accessKeyId is not empty")
 	assert.NotEmpty(t, out.SecretAccessKey, "the retrieved secretAccessKey is not empty")
 	assert.NotEmpty(t, out.SessionToken, "the retrieved sessionToken is not empty")
 	assert.NotEmpty(t, out.Expiration, "the retrieved expiration is not empty")

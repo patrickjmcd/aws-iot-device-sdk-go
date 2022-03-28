@@ -4,3 +4,6 @@ _output
 _provision
 .vscode
 provision-arm7
+aws-provisioning-cli*
+aws-provisioning-device*
+/localproxy*
