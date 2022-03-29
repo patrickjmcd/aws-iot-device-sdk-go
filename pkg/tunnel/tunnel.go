@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os/exec"
 
 	paho "github.com/eclipse/paho.mqtt.golang"
 	"github.com/patrickjmcd/aws-iot-device-sdk-go/pkg/models"
@@ -20,11 +19,6 @@ type tunnelPayload struct {
 
 // ListenForTunnel listens on the MQTT Tunnel Topic and sets up the tunnel once a notify message is received
 func ListenForTunnel(thingName string, keypair models.KeyPair, endpoint string) error {
-
-	_, err := exec.LookPath("localproxy")
-	if err != nil {
-		return fmt.Errorf("localproxy not found in path")
-	}
 
 	notifyChan := make(chan []byte)
 
@@ -72,7 +66,16 @@ func ListenForTunnel(thingName string, keypair models.KeyPair, endpoint string) 
 			}
 
 			log.Println("TUNNEL REQUESTED")
-			return StartLocalProxy(payload.ClientAccessToken, payload.Region)
+
+			localProxyParams := ProxyParams{
+				Region:      payload.Region,
+				AccessToken: payload.ClientAccessToken,
+			}
+			err = StartLocalProxy(localProxyParams)
+			if err != nil {
+				return err
+			}
+			log.Println("TUNNEL CLOSED")
 		}
 	}
 }

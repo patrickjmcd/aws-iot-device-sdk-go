@@ -7,3 +7,5 @@ provision-arm7
 aws-provisioning-cli*
 aws-provisioning-device*
 /localproxy*
+/listen4tunnel*
+.aws_endpoint.uri
