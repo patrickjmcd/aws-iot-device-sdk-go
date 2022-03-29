@@ -65,6 +65,7 @@ func ListenForTunnel(thingName string, keypair models.KeyPair, endpoint string) 
 				return fmt.Errorf("tunnel service %s is not \"SSH\"", payload.Services[0])
 			}
 
+			log.Println("RECIEVED TUNNEL OPEN REQUEST")
 			localProxyParams := ProxyParams{
 				Region:         payload.Region,
 				AccessToken:    payload.ClientAccessToken,
